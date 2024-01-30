@@ -21,11 +21,11 @@
 title: patrick hajali
 # email: hajalipat@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
-  
+  This is my digital garden. Creation is self-observation. 
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
-# twitter_username: jekyll
-# github_username: 
+url: "patrickhajali.com" # the base hostname & protocol for your site, e.g. http://example.com
+twitter_username: pathajali
+github_username: patrickhajali
 
 # Build settings
 theme: minima
