@@ -18,8 +18,57 @@
                 "source": false
               }
             }
+          },
+          {
+            "id": "21bce5a6922ded54",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "2024-01-30-algorithm-discovery.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "8b57aba0c2279077",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "2024-01-31-fcps-recap.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "1c8f877d7b45c26d",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "2024-02-06-evolutionary-algorithms.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "490f7d4eca79f70e",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "2024-02-05-recurse-intro.md",
+                "mode": "source",
+                "source": false
+              }
+            }
           }
-        ]
+        ],
+        "currentTab": 4
       }
     ],
     "direction": "vertical"
@@ -69,7 +118,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "cca1db13c1b99327",
@@ -85,7 +135,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "2024-01-29-building-this-website.md",
+                "file": "2024-02-05-recurse-intro.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +152,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "2024-01-29-building-this-website.md",
+                "file": "2024-02-05-recurse-intro.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +175,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "2024-01-29-building-this-website.md"
+                "file": "2024-02-05-recurse-intro.md"
               }
             }
           },
@@ -142,7 +192,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -154,10 +205,17 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "7fe73ff371ea5d84",
+  "active": "490f7d4eca79f70e",
   "lastOpenFiles": [
-    "images/wedge.png",
+    "2024-02-06-evolutionary-algorithms.md",
+    "2024-02-05-recurse-intro.md",
+    "2024-01-31-fcps-recap.md",
+    "2024-01-30-algorithm-discovery.md",
+    "methods_big (1).png",
+    "Untitled 1.md",
+    "Untitled 2.md",
     "2024-01-29-building-this-website.md",
+    "images/wedge.png",
     "images",
     "Untitled 1.canvas",
     "Untitled.canvas",

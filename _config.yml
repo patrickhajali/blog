@@ -18,10 +18,9 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-title: patrick hajali
+title: Patrick Hajali
 # email: hajalipat@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
-  This is my digital garden. Creation is self-observation. 
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "patrickhajali.com" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: pathajali
@@ -32,6 +31,15 @@ theme: minima
 
 plugins:
   - jekyll-feed
+  - jekyll-toc
+
+# TOC Settings
+toc:
+ min_level: 1
+ max_level: 4
+ list_class: toc
+ list_class: toc__list
+ sublist_class: toc__sublist
 
 defaults: 
   - 
@@ -40,16 +48,17 @@ defaults:
       type: "posts"
     values: 
       layout: "post"
+      toc: true
 
 minima: 
-  skin: dark
+  skin: classic
 
 header_pages: 
   - about.markdown 
   - research.md
 
 author: 
-    name: " "
+    name: "Patrick Hajali"
     email: hajalipat@gmail.com
 # Exclude from processing.
 # The following items will not be processed, by default.
