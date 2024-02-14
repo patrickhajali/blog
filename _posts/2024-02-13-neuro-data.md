@@ -14,11 +14,11 @@ Before downsampling, I applied an anti-aliasing filter to prevent frequencies ab
 
 Taking the moving average of the signal is a form of low-pass filtering. The frequency response of the moving average filter is shown below. The response is somewhat flat in the passable band but is 'bouncy' for frequencies higher than the cutoff. This is far from ideal.  
 
-![](ma_freqz.png)
+![](assets/images/ma_freqz.png)
 
 Because we are oversampling by a large margin, we can afford to sacrifice steepness near the cutoff frequency in exchange for a flatter response in the passband. This makes the [Butterworth filter](https://en.wikipedia.org/wiki/Butterworth_filter), which has maximally flat frequency response in the passband,  a good choice. 
 
-![[Butterworth.png]]
+![[assets/images/Butterworth.png]]
 
 I applied a 6th-order Butterworth filter with a cutoff frequency at 250Hz. 
 
@@ -31,4 +31,4 @@ filtered_samples = sosfiltfilt(sos, samples, axis=0)
 ```
 
 A raw sample from the LFP recordings is shown below (purple), along with the signal when filtered with a moving average (red) and low-pass Butterworth filter (blue). 
-![[butter_ma_og.png]]
+![[assets/images/butter_ma_og.png]]
