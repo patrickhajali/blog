@@ -1,6 +1,7 @@
 ---
 title: Analyzing local field potential recordings
 published: true
+permalink: neuro
 ---
 
 
