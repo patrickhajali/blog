@@ -14,7 +14,7 @@ Before downsampling, I applied an anti-aliasing filter to prevent frequencies ab
 
 Taking the moving average of the signal is a form of low-pass filtering. The frequency response of the moving average filter is shown below. The response is somewhat flat in the passable band but is 'bouncy' for frequencies higher than the cutoff. This is far from ideal.  
 
-![[ma_freqz.png]]
+![](ma_freqz.png)
 
 Because we are oversampling by a large margin, we can afford to sacrifice steepness near the cutoff frequency in exchange for a flatter response in the passband. This makes the [Butterworth filter](https://en.wikipedia.org/wiki/Butterworth_filter), which has maximally flat frequency response in the passband,  a good choice. 
 
