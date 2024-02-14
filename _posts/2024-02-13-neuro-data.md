@@ -31,3 +31,5 @@ filtered_samples = sosfiltfilt(sos, samples, axis=0)
 
 A raw sample from the LFP recordings is shown below (purple), along with the signal when filtered with a moving average (red) and low-pass Butterworth filter (blue). 
 ![](assets/images/butter_ma_og.png)
+
+To be continued...
