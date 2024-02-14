@@ -29,5 +29,21 @@ Problem reduction means that we can transform one problem into another via a sui
 
 A problem belongs to $\mathbf{P}$ if there exists an algorithm that can solve it in polynomial time. $\mathbf{NP}$ contains problems whose solutions can be verified within polynomial time. $\mathbf{P}$ is a subset of $\mathbf{NP}$, as any polynomial-time *solver* can be used as a *verifier*. 
 
+A problem belongs to the class $\mathbf{NP}$-**complete** if it belongs to the class $\mathbf{NP}$ and any other problem in $\mathbf{NP}$ can be reduced to this problem (i.e. NP-complete is the "hardest in NP) by an algorithm which runs in polynomial time. 
+
+A problem belongs to the class $\mathbf{NP}$-**hard** if it is at least as hard as any problem in $\mathbf{NP}$-**complete** (all problems in NP-complete reduce to one in NP-hard), but the solutions cannot necessarily be verified in polynomial time. 
+
+```
+Initialize population with random candidate solutions
+Evaluate each candidate
+UNTIL termination condition is satisfied:
+	Select parents;
+	Recombine pairs of parents;
+	Mutate offspring;
+	Evaluate new candidates;
+	Select individuals for the next generation;
+```
+
+
 ## Notes on [FunSearch](https://www.nature.com/articles/s41586-023-06924-6)
 
