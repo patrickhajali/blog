@@ -3,11 +3,9 @@ title: Analyzing local field potential recordings
 published: true
 permalink: neuro
 ---
-
+{% include interactive.html %}
 
 I was recently given about ~10GB of [local field potential](https://en.wikipedia.org/wiki/Local_field_potential)(LFP) recordings from electrodes placed in the brains (region?) of awake mice. The recordings are sampled at 25kHz (collecting a sample every 40 microseconds) across 64 channels. 
-
-
  
 Given the sampling rate of 25kHz, which significantly exceeds the Nyquist frequency necessary for capturing the highest frequency oscillations observed in the brain ([fast ripples](https://onlinelibrary.wiley.com/doi/10.1111/j.1528-1157.1999.tb02065.x); 250-500Hz), I downsampled the data by a factor of 50 (new Nyquist frequency of 250Hz) to decrease the size of the data without compressing important information. Most brainwaves of interest (fast ripples are not common, occurring only during epilepsy) are well below 250Hz (more specific), so I am drastically oversampling (as desired). 
 
