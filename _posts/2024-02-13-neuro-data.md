@@ -36,34 +36,22 @@ Because we are oversampling by a large margin, we can afford to sacrifice steepn
 
 ![](assets/images/Butterworth.png)
 
-I used ```scipy.signal.butter``` to generate a 6th-order Butterworth filter with a cutoff frequency at 250Hz. The transfer function of the filter (in the z-domain) is of the form
+I used ```scipy.signal.butter``` to generate a 6th-order Butterworth filter with a cutoff frequency at 250Hz. We can decompose the transfer function of the filter into a cascade of $N$-many second-order filters, taking the form 
 
-$$H(s) = \frac{4.86 \times 10^{-8}s^6 + 2.92 \times 10^-7s^5 + 7.30 \times 10^{-7}s^4 + 9.73 \times 10^{-7}s^3 + 7.30 \times 10^{-7}s^2 + 2.92 \times 10^{-7}s + 4.86 \times 10^{-8}}{s^6 - 5.51s^5 + 12.69s^4 - 15.59s^3 + 10.79s^2 - 3.99s + 0.62}` $$
+$$ H(z) = \prod_{i=1}^{N} \frac{b_{0,i} + b_{1,i}z^{-1} + b_{2,i}z^{-2}}{1 - a_{1,i}z^{-1} - a_{2,i}z^{-2}}$$
 
-which can be decomposed into $N$-many second-order filters, of the general form 
-$$ 
-H(z) = \prod_{i=1}^{N} \frac{b_{0,i} + b_{1,i}z^{-1} + b_{2,i}z^{-2}}{1 - a_{1,i}z^{-1} - a_{2,i}z^{-2}}
-$$
-
-Decomposing into a cascade of second-order filters, called second-order sections (SOS), is used to improve the numerical stability of the filter. High-order filters, combined with very large or small coefficients (as in our case), can introduce significant rounding errors due to the finite-precision of the floating point representation. 
+Each second-order filter is referred to as a second-order section (SOS), and this method used to improve the numerical stability of the filter. High-order filters, combined with very large or small coefficients, can introduce significant rounding errors due to the finite-precision of the floating point numbers. 
 
 The overall filter is the cascaded combination of these second-order sections. For $N=3$, applying the filter in the time-domain yields the following equations. 
-$$
-y[n] = y_3[n]
-$$
-$$
-y_3[n] = b_{0,3} \cdot y_2[n] + b_{1,3} \cdot y_2[n-1] + b_{2,3} \cdot y_2[n-2] - a_{1,3} \cdot y_3[n-1] - a_{2,3} \cdot y_3[n-2]
-$$
-$$
-y_2[n] = b_{0,2} \cdot y_1[n] + b_{1,2} \cdot y_1[n-1] + b_{2,2} \cdot y_1[n-2] - a_{1,2} \cdot y_2[n-1] - a_{2,2} \cdot y_2[n-2]
-$$
-$$
-y_1[n] = b_{0,1} \cdot x[n] + b_{1,1} \cdot x[n-1] + b_{2,1} \cdot x[n-2] - a_{1,1} \cdot y_1[n-1] - a_{2,1} \cdot y_1[n-2]
-$$
 
-Here, $y_i$ denotes the filtered output after cascading through the $i$-th second-order section. The final result, $y[n]$, is equal to the output of the last SOS, $y_3[n]$.
+$$y[n] = y_3[n]$$
+$$y_3[n] = b_{0,3} \cdot y_2[n] + b_{1,3} \cdot y_2[n-1] + b_{2,3} \cdot y_2[n-2] - a_{1,3} \cdot y_3[n-1] - a_{2,3} \cdot y_3[n-2]$$
+$$y_2[n] = b_{0,2} \cdot y_1[n] + b_{1,2} \cdot y_1[n-1] + b_{2,2} \cdot y_1[n-2] - a_{1,2} \cdot y_2[n-1] - a_{2,2} \cdot y_2[n-2]$$
+$$y_1[n] = b_{0,1} \cdot x[n] + b_{1,1} \cdot x[n-1] + b_{2,1} \cdot x[n-2] - a_{1,1} \cdot y_1[n-1] - a_{2,1} \cdot y_1[n-2]$$
 
- To apply the filter to the signal, I used the ```sosfiltfilt``` function first passes in the forward direction (as shown in the equations above) and then in the reverse direction. This is done to ensure no lag in the phase of the signal is introduced. 
+Here, $y_i$ denotes the filtered output after cascading through the $i$-th second-order section. The final result, $y[n]$, is equal to the output after the last SOS, $y_3[n]$.
+
+ To apply the filter to the signal, I used the ```sosfiltfilt``` function which passes both in the forward direction (as shown in the equations above) and then in the reverse direction. This is done to ensure no lag in the phase of the signal is introduced. 
 
 ```python
 f0 = 25000
@@ -88,7 +76,7 @@ freq_spectra = np.fft.fft(filtered_samples, axis = 0)
 psd_estimate = np.abs(freq_spectra)**2
 ```
 
-We can do this over a number of channels individually, or average a few channels together, as shown below.  
+We can do this over a number of channels individually, or average a few channels together. The result of the latter is shown below.  
 
 ![](assets/images/fft_psd.png)
 
