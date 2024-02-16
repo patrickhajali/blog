@@ -44,10 +44,10 @@ Each second-order filter is referred to as a second-order section (SOS), and thi
 
 The overall filter is the cascaded combination of these second-order sections. For $N=3$, applying the filter in the time-domain yields the following equations. 
 
-$$y[n] = y_3[n]$$
-$$y_3[n] = b_{0,3} \cdot y_2[n] + b_{1,3} \cdot y_2[n-1] + b_{2,3} \cdot y_2[n-2] - a_{1,3} \cdot y_3[n-1] - a_{2,3} \cdot y_3[n-2]$$
-$$y_2[n] = b_{0,2} \cdot y_1[n] + b_{1,2} \cdot y_1[n-1] + b_{2,2} \cdot y_1[n-2] - a_{1,2} \cdot y_2[n-1] - a_{2,2} \cdot y_2[n-2]$$
-$$y_1[n] = b_{0,1} \cdot x[n] + b_{1,1} \cdot x[n-1] + b_{2,1} \cdot x[n-2] - a_{1,1} \cdot y_1[n-1] - a_{2,1} \cdot y_1[n-2]$$
+$$y[n] = y\_3[n]$$
+$$y\_3[n] = b\_{0,3} \cdot y\_2[n] + b\_{1,3} \cdot y\_2[n-1] + b\_{2,3} \cdot y\_2[n-2] - a\_{1,3} \cdot y\_3[n-1] - a\_{2,3} \cdot y\_3[n-2]$$
+$$y\_2[n] = b\_{0,2} \cdot y\_1[n] + b\_{1,2} \cdot y\_1[n-1] + b\_{2,2} \cdot y\_1[n-2] - a\_{1,2} \cdot y\_2[n-1] - a\_{2,2} \cdot y\_2[n-2]$$
+$$y\_1[n] = b\_{0,1} \cdot x[n] + b\_{1,1} \cdot x[n-1] + b\_{2,1} \cdot x[n-2] - a\_{1,1} \cdot y\_1[n-1] - a\_{2,1} \cdot y\_1[n-2]$$
 
 Here, $y_i$ denotes the filtered output after cascading through the $i$-th second-order section. The final result, $y[n]$, is equal to the output after the last SOS, $y_3[n]$.
 
