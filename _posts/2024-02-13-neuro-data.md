@@ -43,13 +43,13 @@ $$ H(z) = \prod_{i=1}^{N} \frac{b_{0,i} + b_{1,i}z^{-1} + b_{2,i}z^{-2}}{1 - a_{
 Each second-order filter is referred to as a second-order section (SOS), and this method used to improve the numerical stability of the filter. High-order filters, combined with very large or small coefficients, can introduce significant rounding errors due to the finite-precision of the floating point numbers. 
 
 The overall filter is the cascaded combination of these second-order sections. For $N=3$, applying the filter in the time-domain yields the following equations. 
-<div>
+
 $$y[n] = y_3[n]$$
 
 $$y_3[n] = b_{0,3} \cdot y_2[n] + b_{1,3} \cdot y_2[n-1] + b_{2,3} \cdot y_2[n-2] - a_{1,3} \cdot y_3[n-1] - a_{2,3} \cdot y_3[n-2]$$
 $$y_2[n] = b_{0,2} \cdot y_1[n] + b_{1,2} \cdot y_1[n-1] + b_{2,2} \cdot y_1[n-2] - a_{1,2} \cdot y_2[n-1] - a_{2,2} \cdot y_2[n-2]$$
 $$y_1[n] = b_{0,1} \cdot x[n] + b_{1,1} \cdot x[n-1] + b_{2,1} \cdot x[n-2] - a_{1,1} \cdot y_1[n-1] - a_{2,1} \cdot y_1[n-2]$$
-<\div>
+
 
 Here, $y_i$ denotes the filtered output after cascading through the $i$-th second-order section. The final result, $y[n]$, is equal to the output after the last SOS, $y_3[n]$.
 
@@ -95,6 +95,37 @@ The data is normalized to have zero mean, so the peak at 0Hz is not indicative o
 | **Alpha** | 8-12 |
 
 The signal frequencies mainly reside in the mid-theta and delta range. 
+
+
+### The Hilbert transform
+
+The equation for the Hilbert transform of a continuous-time signal is given below.
+$$H\{x(t)\} = \frac{1}{\pi} \mathcal{P} \int_{-\infty}^{\infty} \frac{x(\tau)}{t - \tau} d\tau $$
+In this equation, $\mathcal{P}$ refers to the Cauchy Principal Value of the following integral, a method used to handle integrals that are otherwise undefined due to singularities at certain points, like when $\tau = t$. 
+
+#### What does this do? 
+
+The Hilbert transform can be seen as a convolution with the function $\frac{1}{\pi t}$. In the frequency domain, convolving with this function applies a $-90$ degree phase shift to positive frequency components and a $+90$ degree phase shift to negative frequency components. 
+
+Why is this useful? We can multiply the result, $H\{x(t)\}$, by complex $i$ (imparting a final $-90$ degree phase shift) to "restore" the positive frequency components (shift them back to their original phase) while simultaneously shifting the negative frequency ones an additional $+90$ degrees. Because the negative frequencies are now shifted by a full $+180$ degrees, if we add back the original signal, $x(t)$, to the result, the negative frequencies will be suppressed. This gives:
+
+$$x_a(t) = x(t) + i * H\{x(t)\}$$
+
+where $x_a(t)$ is called the *analytic signal*. If following the phase-shifts is confusing, hopefully the following gif will help. 
+
+![](assets/images/analytic_signal.gif)
+
+In practice, we apply the *discrete* Hilbert transform which is described as
+$$ H\{x[n]\} = \sum_{m=-\infty}^{\infty} h[m]x[n-m]$$
+where $h[m]$ can be thought of analogously to the continuous Hilbert transform's $\frac{1}{\pi t}$, but adapted for discrete signals.
+$$
+h[m] = \begin{cases} 
+  0 & \mbox{if } m = 0 \\
+  \frac{2}{\pi m} \sin\left(\frac{\pi m}{2}\right) & \mbox{if } m \mbox{ is odd} \\
+  0 & \mbox{if } m \mbox{ is even}
+\end{cases}
+$$
+
 
 ## Finding Theta oscillations
 
