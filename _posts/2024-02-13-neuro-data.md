@@ -115,17 +115,40 @@ where $x_a(t)$ is called the *analytic signal*. If following the phase-shifts is
 
 ![](assets/images/analytic_signal.gif)
 
-In practice, we apply the *discrete* Hilbert transform which is described as
-$$ H\{x[n]\} = \sum_{m=-\infty}^{\infty} h[m]x[n-m]$$
-where $h[m]$ can be thought of analogously to the continuous Hilbert transform's $\frac{1}{\pi t}$, but adapted for discrete signals.
+In practice, we apply the *discrete* Hilbert transform (DHT) which is described as
+$$ H\{x(n)\} = \sum_{m=-\infty}^{\infty} h(m)x(n-m)$$
+where $h[m]$ can be thought of analogously to the continuous Hilbert transform's $\frac{1}{\pi t}$ filter, but adapted for discrete signals.
+
 $$
-h[m] = \begin{cases} 
+h(m) = \begin{cases} 
   0 & \mbox{if } m = 0 \\
   \frac{2}{\pi m} \sin\left(\frac{\pi m}{2}\right) & \mbox{if } m \mbox{ is odd} \\
   0 & \mbox{if } m \mbox{ is even}
 \end{cases}
 $$
+From the analytic signal, $x_a(t)$, we can extract the amplitude of the signal
 
+$$ A(t) = |x_a(t)| = \sqrt{\Re\{x_a(t)\}^2 + \Im\{x_a(t)\}^2}$$
+and the instantaneous phase
+
+$$\phi(t) = \arg(x_a(t)) = \tan^{-1}\left(\frac{\Im\{x_a(t)\}}{\Re\{x_a(t)\}}\right)$$
+
+which we can use to get the instantaneous frequency
+
+$$f(t) = \frac{1}{2\pi} \frac{d\phi(t)}{dt}
+$$
+
+Using ```scipy```'s [```signal.hilbert```](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.hilbert.html) function:
+
+```python
+analytic_signal = signal.hilbert(data)
+amplitude_envelope = np.abs(analytic_signal)
+instantaneous_phase = np.unwrap(np.angle(analytic_signal))
+instantaneous_frequency = (np.diff(instantaneous_phase) / 
+								(2.0*np.pi) * (fs/downsampling_factor))
+```
+
+Note that we multiply by the post-downsampling sampling rate ```fs/downsampling_factor``` to ensure the instantaneous frequency is in Hz. 
 
 ## Finding Theta oscillations
 
