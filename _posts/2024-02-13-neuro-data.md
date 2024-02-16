@@ -43,11 +43,13 @@ $$ H(z) = \prod_{i=1}^{N} \frac{b_{0,i} + b_{1,i}z^{-1} + b_{2,i}z^{-2}}{1 - a_{
 Each second-order filter is referred to as a second-order section (SOS), and this method used to improve the numerical stability of the filter. High-order filters, combined with very large or small coefficients, can introduce significant rounding errors due to the finite-precision of the floating point numbers. 
 
 The overall filter is the cascaded combination of these second-order sections. For $N=3$, applying the filter in the time-domain yields the following equations. 
+<div>
+$$y[n] = y_3[n]$$
 
-$$y[n] = y\_3[n]$$
-$$y\_3[n] = b\_{0,3} \cdot y\_2[n] + b\_{1,3} \cdot y\_2[n-1] + b\_{2,3} \cdot y\_2[n-2] - a\_{1,3} \cdot y\_3[n-1] - a\_{2,3} \cdot y\_3[n-2]$$
-$$y\_2[n] = b\_{0,2} \cdot y\_1[n] + b\_{1,2} \cdot y\_1[n-1] + b\_{2,2} \cdot y\_1[n-2] - a\_{1,2} \cdot y\_2[n-1] - a\_{2,2} \cdot y\_2[n-2]$$
-$$y\_1[n] = b\_{0,1} \cdot x[n] + b\_{1,1} \cdot x[n-1] + b\_{2,1} \cdot x[n-2] - a\_{1,1} \cdot y\_1[n-1] - a\_{2,1} \cdot y\_1[n-2]$$
+$$y_3[n] = b_{0,3} \cdot y_2[n] + b_{1,3} \cdot y_2[n-1] + b_{2,3} \cdot y_2[n-2] - a_{1,3} \cdot y_3[n-1] - a_{2,3} \cdot y_3[n-2]$$
+$$y_2[n] = b_{0,2} \cdot y_1[n] + b_{1,2} \cdot y_1[n-1] + b_{2,2} \cdot y_1[n-2] - a_{1,2} \cdot y_2[n-1] - a_{2,2} \cdot y_2[n-2]$$
+$$y_1[n] = b_{0,1} \cdot x[n] + b_{1,1} \cdot x[n-1] + b_{2,1} \cdot x[n-2] - a_{1,1} \cdot y_1[n-1] - a_{2,1} \cdot y_1[n-2]$$
+<\div>
 
 Here, $y_i$ denotes the filtered output after cascading through the $i$-th second-order section. The final result, $y[n]$, is equal to the output after the last SOS, $y_3[n]$.
 
