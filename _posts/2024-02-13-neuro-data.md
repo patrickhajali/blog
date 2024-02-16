@@ -5,13 +5,30 @@ permalink: neuro
 ---
 {% include interactive.html %}
 
+## The data 
+
 I was recently given about ~10GB of [local field potential](https://en.wikipedia.org/wiki/Local_field_potential)(LFP) recordings from electrodes placed in the brains (region?) of awake mice. The recordings are sampled at 25kHz (collecting a sample every 40 microseconds) across 64 channels. 
- 
+
+| channel # | depth | channel # | depth |
+| :--: | :--: | :--: | :--: |
+| 12 | 1 | 15 | 9 |
+| 28 | 2 | 31 | 10 |
+| 19 | 3 | 0 | 11 |
+| 3 | 4 | 16 | 12 |
+| 14 | 5 | 1 | 13 |
+| 30 | 6 | 17 | 14 |
+| 2 | 7 | 13 | 15 |
+| 18 | 8 | 29 | 16 |
+
+#### Downsampling 
+
 Given the sampling rate of 25kHz, which significantly exceeds the Nyquist frequency necessary for capturing the highest frequency oscillations observed in the brain ([fast ripples](https://onlinelibrary.wiley.com/doi/10.1111/j.1528-1157.1999.tb02065.x); 250-500Hz), I downsampled the data by a factor of 50 (new Nyquist frequency of 250Hz) to decrease the size of the data without compressing important information. Most brainwaves of interest (fast ripples are not common, occurring only during epilepsy) are well below 250Hz (more specific), so I am drastically oversampling (as desired). 
+
+#### Anti-aliasing 
 
 Before downsampling, I applied an anti-aliasing filter to prevent frequencies above the new Nyquist frequency (post-downsampling) from folding back into the lower-frequency range and creating aliasing errors. The ideal anti-aliasing filter should have a flat magnitude response to frequencies below the Nyquist frequency and a sharp drop off above it. This, of course, is not realizable in practice. 
 
-Taking the moving average of the signal is a form of low-pass filtering. The frequency response of the moving average filter is shown below. The response is somewhat flat in the passable band but is 'bouncy' for frequencies higher than the cutoff. This is far from ideal.  
+Taking the moving average of the signal is a form of low-pass filtering. The frequency response of the moving average filter is shown below. The response is somewhat flat in the passable band but is 'bouncy' for frequencies higher than the cutoff. This is not ideal.  
 
 ![](assets/images/ma_freqz.png)
 
@@ -19,7 +36,34 @@ Because we are oversampling by a large margin, we can afford to sacrifice steepn
 
 ![](assets/images/Butterworth.png)
 
-I applied a 6th-order Butterworth filter with a cutoff frequency at 250Hz. 
+I used ```scipy.signal.butter``` to generate a 6th-order Butterworth filter with a cutoff frequency at 250Hz. The transfer function of the filter (in the z-domain) is of the form
+
+$$H(s) = \frac{4.86 \times 10^{-8}s^6 + 2.92 \times 10^-7s^5 + 7.30 \times 10^{-7}s^4 + 9.73 \times 10^{-7}s^3 + 7.30 \times 10^{-7}s^2 + 2.92 \times 10^{-7}s + 4.86 \times 10^{-8}}{s^6 - 5.51s^5 + 12.69s^4 - 15.59s^3 + 10.79s^2 - 3.99s + 0.62}` $$
+
+which can be decomposed into $N$-many second-order filters, of the general form 
+$$ 
+H(z) = \prod_{i=1}^{N} \frac{b_{0,i} + b_{1,i}z^{-1} + b_{2,i}z^{-2}}{1 - a_{1,i}z^{-1} - a_{2,i}z^{-2}}
+$$
+
+Decomposing into a cascade of second-order filters, called second-order sections (SOS), is used to improve the numerical stability of the filter. High-order filters, combined with very large or small coefficients (as in our case), can introduce significant rounding errors due to the finite-precision of the floating point representation. 
+
+The overall filter is the cascaded combination of these second-order sections. For $N=3$, applying the filter in the time-domain yields the following equations. 
+$$
+y[n] = y_3[n]
+$$
+$$
+y_3[n] = b_{0,3} \cdot y_2[n] + b_{1,3} \cdot y_2[n-1] + b_{2,3} \cdot y_2[n-2] - a_{1,3} \cdot y_3[n-1] - a_{2,3} \cdot y_3[n-2]
+$$
+$$
+y_2[n] = b_{0,2} \cdot y_1[n] + b_{1,2} \cdot y_1[n-1] + b_{2,2} \cdot y_1[n-2] - a_{1,2} \cdot y_2[n-1] - a_{2,2} \cdot y_2[n-2]
+$$
+$$
+y_1[n] = b_{0,1} \cdot x[n] + b_{1,1} \cdot x[n-1] + b_{2,1} \cdot x[n-2] - a_{1,1} \cdot y_1[n-1] - a_{2,1} \cdot y_1[n-2]
+$$
+
+Here, $y_i$ denotes the filtered output after cascading through the $i$-th second-order section. The final result, $y[n]$, is equal to the output of the last SOS, $y_3[n]$.
+
+ To apply the filter to the signal, I used the ```sosfiltfilt``` function first passes in the forward direction (as shown in the equations above) and then in the reverse direction. This is done to ensure no lag in the phase of the signal is introduced. 
 
 ```python
 f0 = 25000
@@ -30,6 +74,62 @@ filtered_samples = sosfiltfilt(sos, samples, axis=0)
 ```
 
 A raw sample from the LFP recordings is shown below (purple), along with the signal when filtered with a moving average (red) and low-pass Butterworth filter (blue). 
+
 ![](assets/images/butter_ma_og.png)
 
+
+### Frequency domain
+
+The spectral density of the signal describes the distribution of power in the signal into frequency components composing the signal. A straightforward method to estimate the spectral density is to use one of the fast Fourier Transform (FFT) algorithms, then take the squared magnitude of the output. Applying a FFT to the signal produces the spectral content of the signal. 
+
+```python
+freq_bins = np.fft.fftfreq(filtered_samples.shape[0], d=1/(fs/downsampling_factor))
+freq_spectra = np.fft.fft(filtered_samples, axis = 0) 
+psd_estimate = np.abs(freq_spectra)**2
+```
+
+We can do this over a number of channels individually, or average a few channels together, as shown below.  
+
+![](assets/images/fft_psd.png)
+
+Ignoring the 50Hz coming from a nearby outlet, the majority of the power of the signal resides below 15Hz, which is expected. Here's a more zoomed-in view
+
+![](assets/images/fft_psd_zoomed.png)
+
+The data is normalized to have zero mean, so the peak at 0Hz is not indicative of a "DC" element in the data. It may be an artifact of spectral leakage, caused by the discrete nature of the windowing used to calculate the FFT. 
+
+| Oscillation | Frequency (Hz) |
+| :--: | :--: |
+| **Delta** | <5 |
+| **Theta** | 5-10 |
+| **Alpha** | 8-12 |
+
+The signal frequencies mainly reside in the mid-theta and delta range. 
+
+## Finding Theta oscillations
+
+To determine 
+
 To be continued...
+
+	- Theta / delta ratio
+
+
+Notes: 
+hardware only collects signals between 0.1 - 7600Hz
+MNchbis 
+	-L is 0-31
+	-r is 32-63
+Depth is 
+16 channels on each side (only half of the probes are on)
+Top one is 1.55mm depth from top of brain
+
+Region: CA1 
+- frequency domain , fourier transform 
+- spectrogram before/after filtering 
+
+Do signals propagate laterally in CA1? Reasoning for location of probe.
+
+If probe is not in region of interest, how does it pick up on signals in CA1? 
+
+Setup LFP in specific is designed to get synchronous firing, not general activity
