@@ -3,11 +3,13 @@ title: Analyzing local field potential recordings
 published: true
 permalink: neuro
 ---
+---
+
 I was given about ~10GB of [local field potential](https://en.wikipedia.org/wiki/Local_field_potential)(LFP) recordings from electrodes placed in the brains of awake mice. The recordings are sampled at 25kHz (collecting a sample every 40 microseconds) across 32 channels (half in the left hemisphere, half in the right). 
 
 The start of the probes, which contain the electrodes, are placed at a depth of 1.55mm from the outermost layer of the brain. They are positioned to rest directly above the CA1 region (which I believe is in hippocampus) to record the oscillatory activity in the region. 
 
-![](assets/images/p56_coronal.jpg)
+![](assets/images/p56_coronal.jpg){:.centered}
 
 The goal here is to get a closer look at the data, learn about some relevant signal processing methods, and see if I can locate (in time) theta (5-10Hz in mice) oscillations. 
 
@@ -15,11 +17,11 @@ The goal here is to get a closer look at the data, learn about some relevant sig
 
 Below is a plot of a few channels of the data. Note that the compression used to publish the interactive plot here introduced a lot of noise, so don't try to zoom too closely.  
 
-{% include interactive.html %}
+{% include interactive.html %}{:.centered}
 
 #### Downsampling 
 
-Given the sampling rate of 25kHz, which significantly exceeds the Nyquist frequency necessary for capturing the highest frequency oscillations observed in the brain ([fast ripples](https://onlinelibrary.wiley.com/doi/10.1111/j.1528-1157.1999.tb02065.x); 250-500Hz), I downsampled the data by a factor of 50 (new Nyquist frequency of 250Hz) to decrease the size of the data without compressing important information. Most brainwaves of interest (fast ripples are not common, occurring only during epilepsy) are well below 250Hz (more specific), so I am drastically oversampling (as desired). 
+Given the sampling rate of 25kHz, which significantly exceeds the Nyquist frequency necessary for capturing the highest frequency oscillations observed in the brain ([fast ripples](https://onlinelibrary.wiley.com/doi/10.1111/j.1528-1157.1999.tb02065.x); 250-500Hz), I downsampled the data by a factor of 50 (new Nyquist frequency of 250Hz) to decrease the size of the data without compressing important information. Ranging from 5-10Hz in mice, theta oscillations occur well below 250Hz, so I am drastically oversampling, which is good. 
 
 #### Anti-aliasing 
 
@@ -27,29 +29,31 @@ Before downsampling, I applied an anti-aliasing filter to prevent frequencies ab
 
 Taking the moving average of the signal is a form of low-pass filtering. The frequency response of the moving average filter is shown below. The response is somewhat flat in the passable band but is 'bouncy' for frequencies higher than the cutoff. This is not ideal.  
 
-![](assets/images/ma_freqz.png)
+![](assets/images/ma_freqz.png){:.centered}
 
 Because we are oversampling by a large margin, we can afford to sacrifice steepness near the cutoff frequency in exchange for a flatter response in the passband. This makes the [Butterworth filter](https://en.wikipedia.org/wiki/Butterworth_filter), which has maximally flat frequency response in the passband,  a good choice. 
 
-![](assets/images/Butterworth.png)
+![](assets/images/Butterworth.png){:.centered}
 
 I used ```scipy.signal.butter``` to generate a 6th-order Butterworth filter with a cutoff frequency at 250Hz. We can decompose the transfer function of the filter into a cascade of $N$-many second-order filters, taking the form 
 
 $$ H(z) = \prod_{i=1}^{N} \frac{b_{0,i} + b_{1,i}z^{-1} + b_{2,i}z^{-2}}{1 - a_{1,i}z^{-1} - a_{2,i}z^{-2}}$$
 
-Each second-order filter is referred to as a second-order section (SOS), and this method used to improve the numerical stability of the filter. High-order filters, combined with very large or small coefficients, can introduce significant rounding errors due to the finite-precision of the floating point numbers. 
+Each second-order filter is referred to as a second-order section (SOS). This method is used to improve the numerical stability of the overall filter. High-order filters, combined with very large or small coefficients, can introduce significant rounding errors due to the finite-precision of floating point. 
 
 The overall filter is the cascaded combination of these second-order sections. For $N=3$, applying the filter in the time-domain yields the following equations. 
 
-$$y[n] = y_3[n]$$
+$$y_1[n] = b_{0,1} \cdot x[n] + b_{1,1} \cdot x[n-1] + b_{2,1} \cdot x[n-2] - a_{1,1} \cdot y_1[n-1] - a_{2,1} \cdot y_1[n-2]$$
+
+$$y_2[n] = b_{0,2} \cdot y_1[n] + b_{1,2} \cdot y_1[n-1] + b_{2,2} \cdot y_1[n-2] - a_{1,2} \cdot y_2[n-1] - a_{2,2} \cdot y_2[n-2]$$
+
 
 $$
 y_3[n] = b_{0,3} \cdot y_2[n] + b_{1,3} \cdot y_2[n-1] + b_{2,3} \cdot y_2[n-2] - a_{1,3} \cdot y_3[n-1] - a_{2,3} \cdot y_3[n-2]
 $$
 
-$$y_2[n] = b_{0,2} \cdot y_1[n] + b_{1,2} \cdot y_1[n-1] + b_{2,2} \cdot y_1[n-2] - a_{1,2} \cdot y_2[n-1] - a_{2,2} \cdot y_2[n-2]$$
 
-$$y_1[n] = b_{0,1} \cdot x[n] + b_{1,1} \cdot x[n-1] + b_{2,1} \cdot x[n-2] - a_{1,1} \cdot y_1[n-1] - a_{2,1} \cdot y_1[n-2]$$
+$$y[n] = y_3[n]$$
 
 Here, $y_i$ denotes the filtered output after cascading through the $i$-th second-order section. The final result, $y[n]$, is equal to the output after the last SOS, $y_3[n]$.
 
@@ -65,12 +69,12 @@ filtered_samples = sosfiltfilt(sos, samples, axis=0)
 
 A raw sample from the LFP recordings is shown below (purple), along with the signal when filtered with a moving average (red) and low-pass Butterworth filter (blue). 
 
-![](assets/images/butter_ma_og.png)
+![](assets/images/butter_ma_og.png){:.centered}
 
 
 ### Frequency domain
 
-The spectral density of the signal describes the distribution of power in the signal into frequency components composing the signal. A straightforward method to estimate the spectral density is to use one of the fast Fourier Transform (FFT) algorithms, then take the squared magnitude of the output. Applying a FFT to the signal produces the spectral content of the signal. 
+The power spectral density of the signal describes the distribution of power in the signal into frequency components composing the signal. A straightforward method to estimate the spectral density is to use one of the fast Fourier Transform (FFT) algorithms, then take the squared magnitude of the output. Applying a FFT to the signal produces the spectral content of the signal. 
 
 ```python
 freq_bins = np.fft.fftfreq(filtered_samples.shape[0], d=1/(fs/downsampling_factor))
@@ -80,11 +84,11 @@ psd_estimate = np.abs(freq_spectra)**2
 
 We can do this over a number of channels individually, or average a few channels together. The result of the latter is shown below.  
 
-![](assets/images/fft_psd.png)
+![](assets/images/fft_psd.png){:.centered}
 
 Ignoring the 50Hz coming from a nearby outlet, the majority of the power of the signal resides below 15Hz, which is expected. Here's a more zoomed-in view
 
-![](assets/images/fft_psd_zoomed.png)
+![](assets/images/fft_psd_zoomed.png){:.centered}
 
 The data is normalized to have zero mean, so the peak at 0Hz is not indicative of a "DC" element in the data. It may be an artifact of spectral leakage, caused by the discrete nature of the windowing used to calculate the FFT. 
 
@@ -103,10 +107,13 @@ The equation for the Hilbert transform of a continuous-time signal is given belo
 
 $$H\{x(t)\} = \frac{1}{\pi} \mathbf{P} \int_{-\infty}^{\infty} \frac{x(\tau)}{t - \tau} d\tau $$
 
-In this equation, $\mathbf{P}$ refers to the Cauchy Principal Value of the following integral, a method used to handle integrals that are otherwise undefined due to singularities at certain points, like when $\tau = t$. 
+$\mathbf{P}$ refers to the Cauchy Principal Value of the following integral, a method used to handle integrals that are otherwise undefined due to singularities at certain points, like when $\tau = t$. 
 
 On discrete data, like ours, we apply the *discrete* Hilbert transform (DHT) which is described as
+
 $$ H\{x(n)\} = \sum_{m=-\infty}^{\infty} h(m)x(n-m)$$
+
+
 where $h[m]$ can be thought of analogously to the continuous Hilbert transform's $\frac{1}{\pi t}$ filter, but adapted for discrete signals.
 
 $$
@@ -117,13 +124,13 @@ h(m) = \begin{cases}
 \end{cases}
 $$
 
-#### What does this do? 
+#### What does it do? 
 
 The Hilbert transform can be viewed as a convolution with the function  $c(t) = \frac{1}{\pi t}$. In the frequency domain, convolving with this function applies a $-90$ degree phase shift to positive frequency components and a $+90$ degree phase shift to negative frequency components. 
 
 Why is this useful? We can multiply the result of the Hilbert transform by $i$ (imparting a final $-90$ degree phase shift) to "restore" the positive frequency components while simultaneously shifting the negative frequency ones an additional $+90$ degrees. Because the negative frequencies are now shifted by a full $+180$ degrees, if we add back the original signal, $x(t)$, to the result, the negative frequencies will be suppressed. 
 
-![](assets/images/analytic_signal.gif)
+![](assets/images/analytic_signal.gif){:.centered}
 
 The end result is referred to as the *analytic signal*.
 

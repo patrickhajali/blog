@@ -167,6 +167,7 @@
   },
   "active": "231cdb006c21461c",
   "lastOpenFiles": [
+    "_includes/interactive.html",
     "assets/images/p56_coronal.jpg",
     "assets/images/fft_psd_zoomed.png",
     "_posts/2024-02-13-neuro-data.md",
@@ -184,7 +185,6 @@
     "assets/images/fft_psd.png",
     "assets.md",
     "assets/images/fft_psd.png.sb-0295a719-A1R4En",
-    "_includes/interactive.html",
     "_includes/interactive-1.html",
     "_site/neuro.html",
     "_site/assets/images/ma_freqz.png",
