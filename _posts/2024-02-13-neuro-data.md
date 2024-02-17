@@ -3,22 +3,19 @@ title: Analyzing local field potential recordings
 published: true
 permalink: neuro
 ---
-{% include interactive.html %}
+I was given about ~10GB of [local field potential](https://en.wikipedia.org/wiki/Local_field_potential)(LFP) recordings from electrodes placed in the brains of awake mice. The recordings are sampled at 25kHz (collecting a sample every 40 microseconds) across 32 channels (half in the left hemisphere, half in the right). 
+
+The start of the probes, which contain the electrodes, are placed at a depth of 1.55mm from the outermost layer of the brain. They are positioned to rest directly above the CA1 region (which I believe is in hippocampus) to record the oscillatory activity in the region. 
+
+![](assets/images/p56_coronal.jpg)
+
+The goal here is to get a closer look at the data, learn about some relevant signal processing methods, and see if I can locate (in time) theta (5-10Hz in mice) oscillations. 
 
 ## The data 
 
-I was recently given about ~10GB of [local field potential](https://en.wikipedia.org/wiki/Local_field_potential)(LFP) recordings from electrodes placed in the brains (region?) of awake mice. The recordings are sampled at 25kHz (collecting a sample every 40 microseconds) across 64 channels. 
+Below is a plot of a few channels of the data. Note that the compression used to publish the interactive plot here introduced a lot of noise, so don't try to zoom too closely.  
 
-| channel # | depth | channel # | depth |
-| :--: | :--: | :--: | :--: |
-| 12 | 1 | 15 | 9 |
-| 28 | 2 | 31 | 10 |
-| 19 | 3 | 0 | 11 |
-| 3 | 4 | 16 | 12 |
-| 14 | 5 | 1 | 13 |
-| 30 | 6 | 17 | 14 |
-| 2 | 7 | 13 | 15 |
-| 18 | 8 | 29 | 16 |
+{% include interactive.html %}
 
 #### Downsampling 
 
@@ -46,17 +43,20 @@ The overall filter is the cascaded combination of these second-order sections. F
 
 $$y[n] = y_3[n]$$
 
-$$y_3[n] = b_{0,3} \cdot y_2[n] + b_{1,3} \cdot y_2[n-1] + b_{2,3} \cdot y_2[n-2] - a_{1,3} \cdot y_3[n-1] - a_{2,3} \cdot y_3[n-2]$$
-$$y_2[n] = b_{0,2} \cdot y_1[n] + b_{1,2} \cdot y_1[n-1] + b_{2,2} \cdot y_1[n-2] - a_{1,2} \cdot y_2[n-1] - a_{2,2} \cdot y_2[n-2]$$
-$$y_1[n] = b_{0,1} \cdot x[n] + b_{1,1} \cdot x[n-1] + b_{2,1} \cdot x[n-2] - a_{1,1} \cdot y_1[n-1] - a_{2,1} \cdot y_1[n-2]$$
+$$
+y_3[n] = b_{0,3} \cdot y_2[n] + b_{1,3} \cdot y_2[n-1] + b_{2,3} \cdot y_2[n-2] - a_{1,3} \cdot y_3[n-1] - a_{2,3} \cdot y_3[n-2]
+$$
 
+$$y_2[n] = b_{0,2} \cdot y_1[n] + b_{1,2} \cdot y_1[n-1] + b_{2,2} \cdot y_1[n-2] - a_{1,2} \cdot y_2[n-1] - a_{2,2} \cdot y_2[n-2]$$
+
+$$y_1[n] = b_{0,1} \cdot x[n] + b_{1,1} \cdot x[n-1] + b_{2,1} \cdot x[n-2] - a_{1,1} \cdot y_1[n-1] - a_{2,1} \cdot y_1[n-2]$$
 
 Here, $y_i$ denotes the filtered output after cascading through the $i$-th second-order section. The final result, $y[n]$, is equal to the output after the last SOS, $y_3[n]$.
 
  To apply the filter to the signal, I used the ```sosfiltfilt``` function which passes both in the forward direction (as shown in the equations above) and then in the reverse direction. This is done to ensure no lag in the phase of the signal is introduced. 
 
 ```python
-f0 = 25000
+fs = 25000
 nyq = 0.5 * f0
 normalized_cutoff = cutoff / nyq
 sos = butter(aif_order, normalized_cutoff, btype='low', analog=False, output='sos')
@@ -100,22 +100,12 @@ The signal frequencies mainly reside in the mid-theta and delta range.
 ### The Hilbert transform
 
 The equation for the Hilbert transform of a continuous-time signal is given below.
-$$H\{x(t)\} = \frac{1}{\pi} \mathcal{P} \int_{-\infty}^{\infty} \frac{x(\tau)}{t - \tau} d\tau $$
-In this equation, $\mathcal{P}$ refers to the Cauchy Principal Value of the following integral, a method used to handle integrals that are otherwise undefined due to singularities at certain points, like when $\tau = t$. 
 
-#### What does this do? 
+$$H\{x(t)\} = \frac{1}{\pi} \mathbf{P} \int_{-\infty}^{\infty} \frac{x(\tau)}{t - \tau} d\tau $$
 
-The Hilbert transform can be seen as a convolution with the function $\frac{1}{\pi t}$. In the frequency domain, convolving with this function applies a $-90$ degree phase shift to positive frequency components and a $+90$ degree phase shift to negative frequency components. 
+In this equation, $\mathbf{P}$ refers to the Cauchy Principal Value of the following integral, a method used to handle integrals that are otherwise undefined due to singularities at certain points, like when $\tau = t$. 
 
-Why is this useful? We can multiply the result, $H\{x(t)\}$, by complex $i$ (imparting a final $-90$ degree phase shift) to "restore" the positive frequency components (shift them back to their original phase) while simultaneously shifting the negative frequency ones an additional $+90$ degrees. Because the negative frequencies are now shifted by a full $+180$ degrees, if we add back the original signal, $x(t)$, to the result, the negative frequencies will be suppressed. This gives:
-
-$$x_a(t) = x(t) + i * H\{x(t)\}$$
-
-where $x_a(t)$ is called the *analytic signal*. If following the phase-shifts is confusing, hopefully the following gif will help. 
-
-![](assets/images/analytic_signal.gif)
-
-In practice, we apply the *discrete* Hilbert transform (DHT) which is described as
+On discrete data, like ours, we apply the *discrete* Hilbert transform (DHT) which is described as
 $$ H\{x(n)\} = \sum_{m=-\infty}^{\infty} h(m)x(n-m)$$
 where $h[m]$ can be thought of analogously to the continuous Hilbert transform's $\frac{1}{\pi t}$ filter, but adapted for discrete signals.
 
@@ -126,6 +116,19 @@ h(m) = \begin{cases}
   0 & \mbox{if } m \mbox{ is even}
 \end{cases}
 $$
+
+#### What does this do? 
+
+The Hilbert transform can be viewed as a convolution with the function  $c(t) = \frac{1}{\pi t}$. In the frequency domain, convolving with this function applies a $-90$ degree phase shift to positive frequency components and a $+90$ degree phase shift to negative frequency components. 
+
+Why is this useful? We can multiply the result of the Hilbert transform by $i$ (imparting a final $-90$ degree phase shift) to "restore" the positive frequency components while simultaneously shifting the negative frequency ones an additional $+90$ degrees. Because the negative frequencies are now shifted by a full $+180$ degrees, if we add back the original signal, $x(t)$, to the result, the negative frequencies will be suppressed. 
+
+![](assets/images/analytic_signal.gif)
+
+The end result is referred to as the *analytic signal*.
+
+$$x_a(t) = x(t) + i * H\{x(t)\}$$
+
 From the analytic signal, $x_a(t)$, we can extract the amplitude of the signal
 
 $$ A(t) = |x_a(t)| = \sqrt{\Re\{x_a(t)\}^2 + \Im\{x_a(t)\}^2}$$
@@ -138,42 +141,18 @@ which we can use to get the instantaneous frequency
 $$f(t) = \frac{1}{2\pi} \frac{d\phi(t)}{dt}
 $$
 
-Using ```scipy```'s [```signal.hilbert```](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.hilbert.html) function:
+Using ```scipy```'s [```signal.hilbert```](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.hilbert.html) function and some ```numpy``` operations:
 
 ```python
 analytic_signal = signal.hilbert(data)
 amplitude_envelope = np.abs(analytic_signal)
 instantaneous_phase = np.unwrap(np.angle(analytic_signal))
 instantaneous_frequency = (np.diff(instantaneous_phase) / 
-								(2.0*np.pi) * (fs/downsampling_factor))
+			(2.0*np.pi) * (fs/downsampling_factor))
 ```
 
 Note that we multiply by the post-downsampling sampling rate ```fs/downsampling_factor``` to ensure the instantaneous frequency is in Hz. 
 
 ## Finding Theta oscillations
 
-To determine 
-
 To be continued...
-
-	- Theta / delta ratio
-
-
-Notes: 
-hardware only collects signals between 0.1 - 7600Hz
-MNchbis 
-	-L is 0-31
-	-r is 32-63
-Depth is 
-16 channels on each side (only half of the probes are on)
-Top one is 1.55mm depth from top of brain
-
-Region: CA1 
-- frequency domain , fourier transform 
-- spectrogram before/after filtering 
-
-Do signals propagate laterally in CA1? Reasoning for location of probe.
-
-If probe is not in region of interest, how does it pick up on signals in CA1? 
-
-Setup LFP in specific is designed to get synchronous firing, not general activity

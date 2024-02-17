@@ -23,16 +23,13 @@
             "id": "a24e540310d1e3c7",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "image",
               "state": {
-                "file": "_posts/2024-02-13-neuro-data.md",
-                "mode": "source",
-                "source": false
+                "file": "assets/images/p56_coronal.jpg"
               }
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -168,28 +165,29 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "afe88bdc7bda4547",
+  "active": "231cdb006c21461c",
   "lastOpenFiles": [
+    "assets/images/p56_coronal.jpg",
+    "assets/images/fft_psd_zoomed.png",
+    "_posts/2024-02-13-neuro-data.md",
+    "_site/assets/images/p56_coronal.jpg",
+    "_site/assets/images/fft_psd_zoomed.png",
+    "_site/assets/images/fft_psd.png",
+    "_site/assets/images/analytic_signal.gif",
+    "_site/Untitled.md",
+    "_site/Untitled 1.md",
     "assets/images/analytic_signal.gif",
     "Untitled.md",
     "Untitled 1.md",
     "_posts/Untitled.md",
-    "_posts/2024-02-13-neuro-data.md",
     "assets/images/ma_freqz.png",
     "assets/images/fft_psd.png",
-    "assets/images/fft_psd_zoomed.png",
     "assets.md",
     "assets/images/fft_psd.png.sb-0295a719-A1R4En",
     "_includes/interactive.html",
     "_includes/interactive-1.html",
     "_site/neuro.html",
     "_site/assets/images/ma_freqz.png",
-    "_site/assets/images/butter_ma_og.png",
-    "_site/assets/images/Butterworth.png",
-    "assets/images/butter_ma_og.png",
-    "assets/images/Butterworth.png",
-    "assets/images/Moving Average (n=50).png",
-    "assets/images/Butterworth-1.png",
     "_posts/2024-02-05-recurse-intro.md",
     "_posts/2024-01-29-building-this-website.md",
     "2024-02-06-evolutionary-algorithms.md",
