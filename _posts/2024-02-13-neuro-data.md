@@ -114,7 +114,7 @@ On discrete data, like ours, we apply the *discrete* Hilbert transform (DHT) whi
 $$ H\{x(n)\} = \sum_{m=-\infty}^{\infty} h(m)x(n-m)$$
 
 
-where $h[m]$ can be thought of analogously to the continuous Hilbert transform's $\frac{1}{\pi t}$ filter, but adapted for discrete signals.
+where $h[m]$ can be thought of analogously to the continuous Hilbert transform's $\frac{1}{\pi t}$ filter (see below), but adapted for discrete signals.
 
 $$
 h(m) = \begin{cases} 
@@ -129,6 +129,7 @@ $$
 The Hilbert transform can be viewed as a convolution with the function  $c(t) = \frac{1}{\pi t}$. In the frequency domain, convolving with this function applies a $-90$ degree phase shift to positive frequency components and a $+90$ degree phase shift to negative frequency components. 
 
 Why is this useful? We can multiply the result of the Hilbert transform by $i$ (imparting a final $-90$ degree phase shift) to "restore" the positive frequency components while simultaneously shifting the negative frequency ones an additional $+90$ degrees. Because the negative frequencies are now shifted by a full $+180$ degrees, if we add back the original signal, $x(t)$, to the result, the negative frequencies will be suppressed. 
+
 
 ![](assets/images/analytic_signal.gif){:.centered}
 
@@ -149,6 +150,9 @@ which we can use to get the instantaneous frequency
 
 $$f(t) = \frac{1}{2\pi} \frac{d\phi(t)}{dt}
 $$
+
+
+If negative frequencies were not suppressed in the analytic signal, extracting the instantaneous frequency would be potentially misleading, as negative frequencies can cause the phase to advance or retreat in a manner that does not correspond to the physical reality of the signal's frequency content.
 
 Using ```scipy```'s [```signal.hilbert```](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.hilbert.html) function and some ```numpy``` operations:
 
