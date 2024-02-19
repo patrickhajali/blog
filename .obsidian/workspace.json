@@ -165,8 +165,9 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "231cdb006c21461c",
+  "active": "afe88bdc7bda4547",
   "lastOpenFiles": [
+    "assets/images/hilbert.png",
     "_includes/interactive.html",
     "assets/images/p56_coronal.jpg",
     "assets/images/fft_psd_zoomed.png",

@@ -3,7 +3,7 @@ title: Analyzing local field potential recordings
 published: true
 permalink: neuro
 ---
----
+All code accessible [here](https://github.com/patrickhajali/neuro)
 
 I was given about ~10GB of [local field potential](https://en.wikipedia.org/wiki/Local_field_potential)(LFP) recordings from electrodes placed in the brains of awake mice. The recordings are sampled at 25kHz (collecting a sample every 40 microseconds) across 32 channels (half in the left hemisphere, half in the right). 
 
@@ -139,6 +139,8 @@ $$x_a(t) = x(t) + i * H\{x(t)\}$$
 From the analytic signal, $x_a(t)$, we can extract the amplitude of the signal
 
 $$ A(t) = |x_a(t)| = \sqrt{\Re\{x_a(t)\}^2 + \Im\{x_a(t)\}^2}$$
+
+
 and the instantaneous phase
 
 $$\phi(t) = \arg(x_a(t)) = \tan^{-1}\left(\frac{\Im\{x_a(t)\}}{\Re\{x_a(t)\}}\right)$$
@@ -159,6 +161,10 @@ instantaneous_frequency = (np.diff(instantaneous_phase) /
 ```
 
 Note that we multiply by the post-downsampling sampling rate ```fs/downsampling_factor``` to ensure the instantaneous frequency is in Hz. 
+
+The amplitude envelope (orange) and instantaneous frequency (bottom plot) for a 10s sample are shown below. Note that the original signal below was bandpassed for theta frequencies. More on this in the next section. 
+
+![](assets/images/hilbert.png){:.centered}
 
 ## Finding Theta oscillations
 
