@@ -3,7 +3,7 @@ title: Analyzing local field potential recordings
 published: true
 permalink: neuro
 ---
-All code accessible [here](https://github.com/patrickhajali/neuro)
+All code accessible [here](https://github.com/patrickhajali/neuro).
 
 I was given about ~10GB of [local field potential](https://en.wikipedia.org/wiki/Local_field_potential)(LFP) recordings from electrodes placed in the brains of awake mice. The recordings are sampled at 25kHz (collecting a sample every 40 microseconds) across 32 channels (half in the left hemisphere, half in the right). 
 
@@ -15,7 +15,7 @@ The goal here is to get a closer look at the data, learn about some relevant sig
 
 ## The data 
 
-Below is a plot of a few channels of the data. Note that the compression used to publish the interactive plot here introduced a lot of noise, so don't try to zoom too closely.  
+Below is a plot of a few channels of a sample of the data. Note that the compression used to publish the interactive plot here introduced a lot of noise, so don't try to zoom too closely.  
 
 {% include interactive.html %}{:.centered}
 
@@ -98,8 +98,7 @@ The data is normalized to have zero mean, so the peak at 0Hz is not indicative o
 | **Theta** | 5-10 |
 | **Alpha** | 8-12 |
 
-The signal frequencies mainly reside in the mid-theta and delta range. 
-
+The signal frequencies mainly reside in the mid-theta and delta range. Before I can determine specifically when theta oscillations occur, it's essential to introduce a key operation: the Hilbert transform.
 
 ### The Hilbert transform
 
@@ -152,7 +151,7 @@ $$f(t) = \frac{1}{2\pi} \frac{d\phi(t)}{dt}
 $$
 
 
-If negative frequencies were not suppressed in the analytic signal, extracting the instantaneous frequency would be potentially misleading, as negative frequencies can cause the phase to advance or retreat in a manner that does not correspond to the physical reality of the signal's frequency content.
+If negative frequencies were not suppressed in the analytic signal, the instantaneous frequency would be misleading, as negative frequencies can cause the phase to advance or retreat in a manner that does not correspond to the physical reality of the signal's frequency content.
 
 Using ```scipy```'s [```signal.hilbert```](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.hilbert.html) function and some ```numpy``` operations:
 
@@ -172,4 +171,51 @@ The amplitude envelope (orange) and instantaneous frequency (bottom plot) for a 
 
 ## Finding Theta oscillations
 
-To be continued...
+An objective of mine is to get an estimate of when, in the recordings, there are theta oscillations occurring. The first step is to apply a bandpass filter with a passband range of 5 to 10 Hz (theta) to the recording. 
+
+```python
+nyq = 0.5 * fs
+lowcut = 5
+highcut = 10
+low = lowcut / nyq
+high = highcut / nyq
+sos = signal.butter(order, [low, high], btype='band', analog=False, output='sos')
+theta = signal.sosfiltfilt(sos, samples, axis=0)
+```
+
+Initially, analyzing the signal filtered in the theta band seemed sufficient. But after digging deeper (specifically, [Király et. al.](https://www.nature.com/articles/s41467-023-41746-0) and [Kocsis et. al.](https://www.cell.com/cell-reports/fulltext/S2211-1247(22)00958-5?_returnURL=https://linkinghub.elsevier.com/retrieve/pii/S2211124722009585?showall%3Dtrue)), I found there is more nuance. Specifically, I found that the ratio of the amplitude envelopes of theta-filtered and delta-filtered signals, rather than the theta signal alone, is commonly used to determine the presence of theta oscillations. 
+
+My guess is that dividing by the delta amplitude is used to normalize for different levels of background activity across different mice/experimental setups. Normalizing by delta makes sense, as delta and theta oscillations are thought to be associated with different states of brain activity. Hypothetically, this means that, when theta is present, delta should be low (and vice-versa), thus amplifying the signal we are trying to capture. 
+
+The full method consists of the following: 
+1. Extract a 'theta' signal by bandpassing the original signal with a passband in the theta range.
+2. Extra a 'delta' signal through the same method.
+3. Get the analytic signal of both the theta and delta filtered signals.
+4. Compare the ratio of the magnitude (amplitude envelope) of the two analytic signals. 
+5. If the ratio exceeds a set threshold for a given number of seconds, consider that time-window positive for theta. 
+
+Code for steps 4 and 5 is shown below. The hyperparameters ```ratio_threshold``` and ```min_seconds``` were hand selected. 
+
+```python
+ratio = theta_amplitude / delta_amplitude
+ratio_threshold = 1
+above_threshold = np.where(ratio > ratio_threshold, 1, 0)
+
+min_seconds = 2
+window_size = int(min_seconds * fs_new)
+convolved = np.convolve(above_threshold, np.ones(window_size)/window_size, mode='same')
+
+theta_on = np.zeros_like(above_threshold)
+for i in range(len(convolved)):
+# if ratio is met at a certain point, mark the entire window as a theta cycle
+if convolved[i] >= 1:
+	start_index = max(i - window_size // 2, 0)
+	end_index = min(i + window_size // 2, len(theta_on))
+	theta_on[start_index:end_index] = 1
+```
+
+The results are plotted below. The original signal is shown in blue. The red bands are present when the mice was running (this was recorded during the experiment). Running is a behavioral state thought to be associated with theta oscillations, so the correlation is expected.
+
+![](assets/images/theta_on.png){:.centered}
+
+Pretty cool! 

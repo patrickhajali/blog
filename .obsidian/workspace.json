@@ -165,8 +165,11 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "afe88bdc7bda4547",
+  "active": "231cdb006c21461c",
   "lastOpenFiles": [
+    "_site/assets/images/theta_on.png",
+    "_site/assets/images/hilbert.png",
+    "assets/images/theta_on.png",
     "assets/images/hilbert.png",
     "_includes/interactive.html",
     "assets/images/p56_coronal.jpg",
@@ -182,13 +185,10 @@
     "Untitled.md",
     "Untitled 1.md",
     "_posts/Untitled.md",
-    "assets/images/ma_freqz.png",
-    "assets/images/fft_psd.png",
     "assets.md",
     "assets/images/fft_psd.png.sb-0295a719-A1R4En",
     "_includes/interactive-1.html",
     "_site/neuro.html",
-    "_site/assets/images/ma_freqz.png",
     "_posts/2024-02-05-recurse-intro.md",
     "_posts/2024-01-29-building-this-website.md",
     "2024-02-06-evolutionary-algorithms.md",
