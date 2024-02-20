@@ -39,7 +39,7 @@ I used ```scipy.signal.butter``` to generate a 6th-order Butterworth filter with
 
 $$ H(z) = \prod_{i=1}^{N} \frac{b_{0,i} + b_{1,i}z^{-1} + b_{2,i}z^{-2}}{1 - a_{1,i}z^{-1} - a_{2,i}z^{-2}}$$
 
-Each second-order filter is referred to as a second-order section (SOS). This method is used to improve the numerical stability of the overall filter. High-order filters, combined with very large or small coefficients, can introduce significant rounding errors due to the finite-precision of floating point. 
+Each second-order filter is referred to as a second-order section (SOS). This method is used to improve the numerical stability of the overall filter. High-order filters, combined with very large or small coefficients, can introduce significant rounding errors due to the finite-precision of floating point numbers, so it makes sense to decompose them into lower-order filters. 
 
 The overall filter is the cascaded combination of these second-order sections. For $N=3$, applying the filter in the time-domain yields the following equations. 
 
@@ -61,7 +61,7 @@ Here, $y_i$ denotes the filtered output after cascading through the $i$-th secon
 
 ```python
 fs = 25000
-nyq = 0.5 * f0
+nyq = 0.5 * fs
 normalized_cutoff = cutoff / nyq
 sos = butter(aif_order, normalized_cutoff, btype='low', analog=False, output='sos')
 filtered_samples = sosfiltfilt(sos, samples, axis=0)
@@ -113,7 +113,7 @@ On discrete data, like ours, we apply the *discrete* Hilbert transform (DHT) whi
 $$ H\{x(n)\} = \sum_{m=-\infty}^{\infty} h(m)x(n-m)$$
 
 
-where $h[m]$ can be thought of analogously to the continuous Hilbert transform's $\frac{1}{\pi t}$ filter (see below), but adapted for discrete signals.
+where $h(m)$ can be thought of analogously to the continuous Hilbert transform's $\frac{1}{\pi t}$ filter (see below), but adapted for discrete signals.
 
 $$
 h(m) = \begin{cases} 
